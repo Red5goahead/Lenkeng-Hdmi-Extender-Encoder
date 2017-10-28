@@ -53,11 +53,15 @@ GUICtrlSetData(-1, "mp4|ts|mkv", "ts")
 $ComboPreset = GUICtrlCreateCombo("", 192, 182, 97, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
 GUICtrlSetData(-1, "ultrafast|superfast|veryfast|faster|fast|medium|slow", "superfast")
 $ComboVCodec = GUICtrlCreateCombo("", 16, 238, 145, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
-GUICtrlSetData(-1, "copy|h264|mpeg2video", "copy")
+GUICtrlSetData(-1, "copy|h264 (CBR)|h264 (CRF)|mpeg2video", "copy")
 $ComboScaleTo = GUICtrlCreateCombo("", 191, 238, 97, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
 GUICtrlSetData(-1, "720:480|704:480|720:576|704:576|1280:720|1920:1080", "1280:720")
 $InputVBitrate = GUICtrlCreateInput("5000", 321, 237, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
 GUICtrlSetLimit(-1, 5)
+GUICtrlSetTip(-1, "Cbr (costant bitrate)")
+$InputVCrf = GUICtrlCreateInput("18", 417, 237, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+GUICtrlSetLimit(-1, 2)
+GUICtrlSetTip(-1, "Constant Rate Factor")
 $ComboACodec = GUICtrlCreateCombo("", 16, 294, 145, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
 GUICtrlSetData(-1, "copy|aac|ac3|libmp3lame|mp2", "copy")
 $InputABitrate = GUICtrlCreateInput("192", 321, 293, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
@@ -72,6 +76,7 @@ $LabelScaleTo = GUICtrlCreateLabel("Scale to", 191, 220, 43, 17)
 $LabelPreset = GUICtrlCreateLabel("Preset", 192, 164, 34, 17)
 $LabelVBitrate = GUICtrlCreateLabel("Video bitrate (Kb.)", 320, 220, 88, 17)
 $LabelAVCodec = GUICtrlCreateLabel("Audio bitrate (Kb.)", 320, 276, 88, 17)
+$LabelVCrf = GUICtrlCreateLabel("CRF (0-51)", 416, 220, 55, 17)
 GUICtrlCreateGroup("", -99, -99, 1, 1)
 $ButtonEncode = GUICtrlCreateButton("Encode (CTRL+E)", 208, 375, 103, 25, $BS_DEFPUSHBUTTON)
 GUICtrlSetTip(-1, "Start encoding")
@@ -227,11 +232,21 @@ Func Encode()
 		$sCommand = $sCommand & " "
 	EndIf
 
-	$sCommand = $sCommand & StringFormat("-c:v %s", GUICtrlRead($ComboVCodec))
+	Local $sCodec = GUICtrlRead($ComboVCodec)
+	if StringInStr(GUICtrlRead($ComboVCodec), "(cbr)",  $STR_NOCASESENSE) > 0 Then
+		$sCodec = StringLeft($sCodec, 4)
+	ElseIf StringInStr(GUICtrlRead($ComboVCodec), "(crf)",  $STR_NOCASESENSE) > 0 Then
+		$sCodec = StringLeft($sCodec, 4)
+	EndIf
+	$sCommand = $sCommand & StringFormat("-c:v %s", $sCodec)
 	$sCommand = $sCommand & " "
 
 	if GUICtrlRead($ComboVCodec) <> "copy" then
-		$sCommand = $sCommand & StringFormat("-b:v %sk", GUICtrlRead($InputVBitrate))
+		if StringInStr(GUICtrlRead($ComboVCodec), "(crf)",  $STR_NOCASESENSE) > 0 Then
+			$sCommand = $sCommand & StringFormat("-crf %s", GUICtrlRead($InputVCrf))
+		else
+			$sCommand = $sCommand & StringFormat("-b:v %sk", GUICtrlRead($InputVBitrate))
+		EndIf
 		$sCommand = $sCommand & " "
 	EndIf
 
@@ -358,14 +373,26 @@ Func HandleControls()
 	GUICtrlSetState ($ComboPreset,$GUI_ENABLE)
 	GUICtrlSetState ($ComboScaleTo,$GUI_ENABLE)
 	GUICtrlSetState ($InputVBitrate,$GUI_ENABLE)
+	GUICtrlSetState ($InputVCrf,$GUI_ENABLE)
 	GUICtrlSetState ($InputABitrate,$GUI_ENABLE)
 	GUICtrlSetState ($CheckboxDeint,$GUI_ENABLE)
 	GUICtrlSetState ($CheckboxDeint2x,$GUI_ENABLE)
 	if _GUICtrlComboBox_GetCurSel($ComboVCodec) = 0 Then
 		GUICtrlSetState ($ComboScaleTo,$GUI_DISABLE)
 		GUICtrlSetState ($InputVBitrate,$GUI_DISABLE)
+		GUICtrlSetState ($InputVCrf,$GUI_DISABLE)
 		GUICtrlSetState ($CheckboxDeint,$GUI_DISABLE)
 		GUICtrlSetState ($CheckboxDeint2x,$GUI_DISABLE)
+	EndIf
+	if _GUICtrlComboBox_GetCurSel($ComboVCodec) = 1 Then ;~ 	H.264 Cbr
+		GUICtrlSetState ($InputVBitrate,$GUI_ENABLE)
+		GUICtrlSetState ($InputVCrf,$GUI_DISABLE)
+	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 2 then ;~ 	H.264 Crf
+		GUICtrlSetState ($InputVCrf,$GUI_ENABLE)
+		GUICtrlSetState ($InputVBitrate,$GUI_DISABLE)
+	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 then ;~ 	Mpeg2
+		GUICtrlSetState ($InputVBitrate,$GUI_ENABLE)
+		GUICtrlSetState ($InputVCrf,$GUI_DISABLE)
 	EndIf
 	if _GUICtrlComboBox_GetCurSel($ComboACodec) = 0 Then
 		GUICtrlSetState ($InputABitrate,$GUI_DISABLE)
@@ -374,11 +401,6 @@ Func HandleControls()
 		GUICtrlSetData  ($ButtonEncode,"Grab (CTRL+E)")
 		GUICtrlSetState ($ComboContainer,$GUI_DISABLE)
 		GUICtrlSetState ($ComboPreset,$GUI_DISABLE)
-		GUICtrlSetState ($ComboScaleTo,$GUI_DISABLE)
-		GUICtrlSetState ($InputVBitrate,$GUI_DISABLE)
-		GUICtrlSetState ($InputABitrate,$GUI_DISABLE)
-		GUICtrlSetState ($CheckboxDeint,$GUI_DISABLE)
-		GUICtrlSetState ($CheckboxDeint2x,$GUI_DISABLE)
 	Else
 		GUICtrlSetData  ($ButtonEncode,"Encode (CTRL+E)")
 	EndIf
@@ -414,7 +436,7 @@ Func LoadConfiguration()
 
 	Local $sComboVCodec = IniRead($Config, "Encoding", "VCodec","")
 	if $sComboVCodec = "" Then
-		$sComboVCodec = "h264"
+		$sComboVCodec = "h264 (CRF)"
 	EndIf
 	GUICtrlSetData($ComboVCodec, $sComboVCodec)
 
@@ -424,11 +446,17 @@ Func LoadConfiguration()
 	EndIf
 	GUICtrlSetData($ComboScaleTo, $sComboScaleTo)
 
-	Local $InputVBitrate = IniRead($Config, "Encoding", "VBitrate","")
-	if $InputVBitrate = "" Then
-		$InputVBitrate = "5000"
+	Local $sInputVBitrate = IniRead($Config, "Encoding", "VBitrate","")
+	if $sInputVBitrate = "" Then
+		$sInputVBitrate = "5000"
 	EndIf
-	GUICtrlSetData($InputVBitrate, $InputVBitrate)
+	GUICtrlSetData($InputVBitrate, $sInputVBitrate)
+
+	Local $sInputVCrf = IniRead($Config, "Encoding", "VCrf","")
+	if $sInputVCrf = "" Then
+		$sInputVCrf = "23"
+	EndIf
+	GUICtrlSetData($InputVCrf, $sInputVCrf)
 
 	Local $sCheckboxDeint = IniRead($Config, "Encoding", "Deint", true)
 	if $sCheckboxDeint = "true" Then
@@ -491,6 +519,9 @@ Func SaveConfiguration()
 
 	Local $sInputVBitrate = GUICtrlRead($InputVBitrate)
 	IniWrite($Config, "Encoding", "VBitrate", $sInputVBitrate)
+
+	Local $sInputVCrf = GUICtrlRead($InputVCrf)
+	IniWrite($Config, "Encoding", "VCrf", $sInputVCrf)
 
 	Local $sCheckboxDeint = GUICtrlRead($CheckboxDeint) = $GUI_CHECKED
 	IniWrite($Config, "Encoding", "Deint", $sCheckboxDeint)
