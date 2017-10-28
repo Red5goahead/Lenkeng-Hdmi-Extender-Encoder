@@ -1,7 +1,7 @@
 #cs ----------------------------------------------------------------------------
 
  AutoIt Version: 3.3.14.2
- Author:         myName
+ Author:         Gilberto Beda (gilberto.beda@gmail.com)
 
  Script Function:
 	Template AutoIt script.
