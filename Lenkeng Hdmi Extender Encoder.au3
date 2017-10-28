@@ -56,16 +56,12 @@ $ComboVCodec = GUICtrlCreateCombo("", 16, 238, 145, 25, BitOR($CBS_DROPDOWNLIST,
 GUICtrlSetData(-1, "copy|h264|mpeg2video", "copy")
 $ComboScaleTo = GUICtrlCreateCombo("", 191, 238, 97, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
 GUICtrlSetData(-1, "720:480|704:480|720:576|704:576|1280:720|1920:1080", "1280:720")
-$InputVBitrate = GUICtrlCreateInput("5000", 321, 237, 91, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+$InputVBitrate = GUICtrlCreateInput("5000", 321, 237, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
 GUICtrlSetLimit(-1, 5)
-$UpdownVBitrate = GUICtrlCreateUpdown($InputVBitrate)
-GUICtrlSetLimit(-1, 20000, 500)
 $ComboACodec = GUICtrlCreateCombo("", 16, 294, 145, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
-GUICtrlSetData(-1, "copy|aac", "copy")
-$InputABitrate = GUICtrlCreateInput("192", 321, 293, 91, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+GUICtrlSetData(-1, "copy|aac|ac3|libmp3lame|mp2", "copy")
+$InputABitrate = GUICtrlCreateInput("192", 321, 293, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
 GUICtrlSetLimit(-1, 5)
-$UpdownABitrate = GUICtrlCreateUpdown($InputABitrate)
-GUICtrlSetLimit(-1, 320, 64)
 $CheckboxDeint = GUICtrlCreateCheckbox("Deinterlace", 16, 333, 74, 17)
 GUICtrlSetState(-1, $GUI_CHECKED)
 $CheckboxDeint2x = GUICtrlCreateCheckbox("Deinterlace (2x)", 104, 333, 95, 17)
@@ -97,6 +93,7 @@ GUISetAccelerators($MainForm_AccelTable)
 #EndRegion ### END Koda GUI section ###
 
 Opt("WinTitleMatchMode", -2) ;1=start, 2=subStr, 3=exact, 4=advanced, -1 to -4=Nocase
+Global $Delay = 5000
 Global $Config = @ScriptDir & "\config"
 Global $iPIDFFMpegDest = 0
 Global $iPIDFFMpegRaw = 0
@@ -172,8 +169,6 @@ While 1
 WEnd
 
 Func Encode()
-	_GUICtrlStatusBar_SetText($StatusBar, "Encoding ...", 0)
-
 	GUICtrlSetState($ButtonAbort, $GUI_ENABLE)
 	GUICtrlSetState($ButtonEncode, $GUI_DISABLE)
 	GUICtrlSetState($ButtonExit, $GUI_DISABLE)
@@ -269,6 +264,7 @@ Func Encode()
 	$dTimeEncode = $dStartTimeEncode;
 
  	if $sCommandRaw = "" then
+		_GUICtrlStatusBar_SetText($StatusBar, "Encoding ...", 0)
 		$iPIDFFMpegDest = ShellExecute($sExe, $sCommand, $sFFMPegFolder, $SHEX_OPEN, @SW_HIDE)
 		Local $hWnd = WinWait("ffmpeg", "", 5)
 
@@ -277,6 +273,7 @@ Func Encode()
 		WinSetTitle($hWnd, "", $guidPIDFFMpegDest)
 	Else
 
+		_GUICtrlStatusBar_SetText($StatusBar, "Starting ...", 0)
 		$iPIDFFMpegRaw = ShellExecute($sExe, $sCommandRaw, $sFFMPegFolder, $SHEX_OPEN, @SW_HIDE)
 		Local $hWndRaw = WinWait("ffmpeg", "", 5)
 		$guidPIDFFMpegRaw = _WinAPI_CreateGUID ( )
@@ -285,11 +282,12 @@ Func Encode()
 		While not FileExists($sFileFFMpegRaw)
 		WEnd
 
-		Sleep(1000)
+		Sleep($Delay)
 
 		$dStartTimeEncode = _NowCalc();
 		$dTimeEncode = $dStartTimeEncode;
 
+		_GUICtrlStatusBar_SetText($StatusBar, "Encoding ...", 0)
 		$iPIDFFMpegDest = ShellExecute($sExe, $sCommand, $sFFMPegFolder, $SHEX_OPEN, @SW_HIDE)
 		Local $hWnd = WinWait("ffmpeg", "", 5)
 		$guidPIDFFMpegDest = _WinAPI_CreateGUID ( )
@@ -323,20 +321,20 @@ Func Sec_2_Time_Format($iSec) ;coded by UEZ
 EndFunc   ;==>Sec_2_Time_Format
 
 Func Abort()
-	Global $sEncoding = False
-	_GUICtrlStatusBar_SetText($StatusBar, "Ready", 0)
-	_GUICtrlStatusBar_SetText($StatusBar, "", 2)
 
-	GUICtrlSetState($ButtonAbort, $GUI_DISABLE)
-	GUICtrlSetState($ButtonEncode, $GUI_ENABLE)
-	GUICtrlSetState($ButtonExit, $GUI_ENABLE)
+	Global $sEncoding = False
 
 	if $iPIDFFMpegRaw > 0 Then
+		_GUICtrlStatusBar_SetText($StatusBar, "Closing...", 0)
 		Local $hWndRaw = WinWait($guidPIDFFMpegRaw, "", 3)
 		ControlSend($hWndRaw, "", "", "q")
+		ProcessWaitClose($iPIDFFMpegDest, 10)
 		$iPIDFFMpegRaw = 0
 		$guidPIDFFMpegRaw = ""
 		$sFileFFMpegRaw = ""
+		Global $sEncoding = False
+		_GUICtrlStatusBar_SetText($StatusBar, "Ready", 0)
+		_GUICtrlStatusBar_SetText($StatusBar, "", 2)
 	EndIf
 
 	if $iPIDFFMpegDest > 0 Then
@@ -345,7 +343,14 @@ Func Abort()
 		$iPIDFFMpegDest = 0
 		$guidPIDFFMpegDest = ""
 		$sFileFFMpegDest = ""
+		_GUICtrlStatusBar_SetText($StatusBar, "Ready", 0)
+		_GUICtrlStatusBar_SetText($StatusBar, "", 2)
 	EndIf
+
+	GUICtrlSetState($ButtonAbort, $GUI_DISABLE)
+	GUICtrlSetState($ButtonEncode, $GUI_ENABLE)
+	GUICtrlSetState($ButtonExit, $GUI_ENABLE)
+
 EndFunc
 
 Func HandleControls()
