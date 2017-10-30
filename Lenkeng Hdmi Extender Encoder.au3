@@ -25,7 +25,7 @@
 #include <Date.au3>
 
 #Region ### START Koda GUI section ### Form=MainForm.kxf
-$MainForm = GUICreate("Lenkeng/ESYNiC HDMI Extender Encoder", 767, 432, 195, 119)
+$MainForm = GUICreate("Lenkeng/ESYNiC HDMI Extender Encoder", 746, 432, 195, 119)
 $GroupInOut = GUICtrlCreateGroup("&Source && Destination", 9, 8, 721, 129)
 GUICtrlSetResizing(-1, $GUI_DOCKTOP)
 $InputIpAddress = GUICtrlCreateInput("239.255.42.42", 109, 27, 121, 21)
@@ -53,7 +53,7 @@ GUICtrlSetData(-1, "mp4|ts|mkv", "ts")
 $ComboPreset = GUICtrlCreateCombo("", 192, 182, 97, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
 GUICtrlSetData(-1, "ultrafast|superfast|veryfast|faster|fast|medium|slow", "superfast")
 $ComboVCodec = GUICtrlCreateCombo("", 16, 238, 145, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
-GUICtrlSetData(-1, "copy|h264 (CBR)|h264 (CRF)|mpeg2video", "copy")
+GUICtrlSetData(-1, "copy|h264 (CBR)|h264 (CRF)|mpeg2video (CBR)|mpeg2video (QSCALE)", "copy")
 $ComboScaleTo = GUICtrlCreateCombo("", 191, 238, 97, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
 GUICtrlSetData(-1, "720:480|704:480|720:576|704:576|1280:720|1920:1080", "1280:720")
 $InputVBitrate = GUICtrlCreateInput("5000", 321, 237, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
@@ -62,6 +62,9 @@ GUICtrlSetTip(-1, "Cbr (costant bitrate)")
 $InputVCrf = GUICtrlCreateInput("18", 417, 237, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
 GUICtrlSetLimit(-1, 2)
 GUICtrlSetTip(-1, "Constant Rate Factor")
+$InputVQScale = GUICtrlCreateInput("5", 513, 237, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+GUICtrlSetLimit(-1, 2)
+GUICtrlSetTip(-1, "Quantizer scale")
 $ComboACodec = GUICtrlCreateCombo("", 16, 294, 145, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
 GUICtrlSetData(-1, "copy|aac|ac3|libmp3lame|mp2", "copy")
 $InputABitrate = GUICtrlCreateInput("192", 321, 293, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
@@ -69,6 +72,8 @@ GUICtrlSetLimit(-1, 5)
 $CheckboxDeint = GUICtrlCreateCheckbox("Deinterlace", 16, 333, 74, 17)
 GUICtrlSetState(-1, $GUI_CHECKED)
 $CheckboxDeint2x = GUICtrlCreateCheckbox("Deinterlace (2x)", 104, 333, 95, 17)
+$ButtonProfileLoad = GUICtrlCreateButton("Load", 552, 328, 75, 25)
+$ButtonProfileSave = GUICtrlCreateButton("Save", 640, 328, 75, 25)
 $LabelContainer = GUICtrlCreateLabel("Container", 16, 164, 49, 17)
 $LabelVCodec = GUICtrlCreateLabel("Video codec", 18, 220, 64, 17)
 $LabelACodec = GUICtrlCreateLabel("Audio codec", 18, 276, 64, 17)
@@ -77,6 +82,7 @@ $LabelPreset = GUICtrlCreateLabel("Preset", 192, 164, 34, 17)
 $LabelVBitrate = GUICtrlCreateLabel("Video bitrate (Kb.)", 320, 220, 88, 17)
 $LabelAVCodec = GUICtrlCreateLabel("Audio bitrate (Kb.)", 320, 276, 88, 17)
 $LabelVCrf = GUICtrlCreateLabel("CRF (0-51)", 416, 220, 55, 17)
+$LabelVQScale = GUICtrlCreateLabel("QScale (0-31)", 512, 220, 69, 17)
 GUICtrlCreateGroup("", -99, -99, 1, 1)
 $ButtonEncode = GUICtrlCreateButton("Encode (CTRL+E)", 208, 375, 103, 25, $BS_DEFPUSHBUTTON)
 GUICtrlSetTip(-1, "Start encoding")
@@ -91,7 +97,7 @@ _GUICtrlStatusBar_SetParts($StatusBar, $StatusBar_PartsWidth)
 _GUICtrlStatusBar_SetText($StatusBar, "Ready", 0)
 _GUICtrlStatusBar_SetText($StatusBar, "", 1)
 _GUICtrlStatusBar_SetText($StatusBar, "", 2)
-_GUICtrlStatusBar_SetText($StatusBar, "v 1.00", 3)
+_GUICtrlStatusBar_SetText($StatusBar, "v 1.01", 3)
 GUISetState(@SW_SHOW)
 Dim $MainForm_AccelTable[3][2] = [["^e", $ButtonEncode],["^a", $ButtonAbort],["^x", $ButtonExit]]
 GUISetAccelerators($MainForm_AccelTable)
@@ -160,6 +166,10 @@ While 1
 			if GUICtrlRead($CheckboxDeint2x) = $GUI_CHECKED Then
 				GUICtrlSetState($CheckboxDeint, $GUI_UNCHECKED)
 			EndIf
+		Case $ButtonProfileLoad
+			LoadProfile()
+		Case $ButtonProfileSave
+			SaveProfile()
 		Case $ButtonEncode
 			Encode()
 		Case $ButtonAbort
@@ -233,18 +243,24 @@ Func Encode()
 	EndIf
 
 	Local $sCodec = GUICtrlRead($ComboVCodec)
-	if StringInStr(GUICtrlRead($ComboVCodec), "(cbr)",  $STR_NOCASESENSE) > 0 Then
+	if _GUICtrlComboBox_GetCurSel($ComboVCodec) = 1 Then ;~ 	H.264 Cbr
 		$sCodec = StringLeft($sCodec, 4)
-	ElseIf StringInStr(GUICtrlRead($ComboVCodec), "(crf)",  $STR_NOCASESENSE) > 0 Then
+	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 2 Then ;~ 	H.264 Cbr
 		$sCodec = StringLeft($sCodec, 4)
+	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 then ;~ 	Mpeg2Video Cbr
+		$sCodec = StringLeft($sCodec, 10)
+	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 4 then ;~ 	Mpeg2Video QScale
+		$sCodec = StringLeft($sCodec, 10)
 	EndIf
 	$sCommand = $sCommand & StringFormat("-c:v %s", $sCodec)
 	$sCommand = $sCommand & " "
 
-	if GUICtrlRead($ComboVCodec) <> "copy" then
+	if _GUICtrlComboBox_GetCurSel($ComboVCodec) > 0 Then ;~ 	not copy
 		if StringInStr(GUICtrlRead($ComboVCodec), "(crf)",  $STR_NOCASESENSE) > 0 Then
 			$sCommand = $sCommand & StringFormat("-crf %s", GUICtrlRead($InputVCrf))
-		else
+		ElseIf StringInStr(GUICtrlRead($ComboVCodec), "(qscale)",  $STR_NOCASESENSE) > 0 Then
+			$sCommand = $sCommand & StringFormat("-qscale %s", GUICtrlRead($InputVQScale))
+		Else
 			$sCommand = $sCommand & StringFormat("-b:v %sk", GUICtrlRead($InputVBitrate))
 		EndIf
 		$sCommand = $sCommand & " "
@@ -254,16 +270,16 @@ Func Encode()
 	$sCommand = $sCommand & StringFormat("-c:a %s", GUICtrlRead($ComboACodec))
 	$sCommand = $sCommand & " "
 
-	if GUICtrlRead($ComboACodec) <> "copy" then
+	if _GUICtrlComboBox_GetCurSel($ComboACodec) > 0 Then ;~ 	not copy
 		$sCommand = $sCommand & StringFormat("-b:a %sk", GUICtrlRead($InputABitrate))
 		$sCommand = $sCommand & " "
 	EndIf
 
 	; preset
-	if GUICtrlRead($ComboVCodec) = "h264" then
+	if StringInStr(GUICtrlRead($ComboVCodec), "h264",  $STR_NOCASESENSE) > 0 Then
 		$sCommand = $sCommand & StringFormat("-preset %s", GUICtrlRead($ComboPreset))
 		$sCommand = $sCommand & " "
-	elseif GUICtrlRead($ComboVCodec) = "mpeg2video" Then
+	elseif StringInStr(GUICtrlRead($ComboVCodec), "mpeg2video",  $STR_NOCASESENSE) > 0 Then
 		$sCommand = $sCommand & StringFormat("-preset %s", GUICtrlRead($ComboPreset))
 		$sCommand = $sCommand & " "
 	EndIf
@@ -381,17 +397,25 @@ Func HandleControls()
 		GUICtrlSetState ($ComboScaleTo,$GUI_DISABLE)
 		GUICtrlSetState ($InputVBitrate,$GUI_DISABLE)
 		GUICtrlSetState ($InputVCrf,$GUI_DISABLE)
+		GUICtrlSetState ($InputVQScale,$GUI_DISABLE)
 		GUICtrlSetState ($CheckboxDeint,$GUI_DISABLE)
 		GUICtrlSetState ($CheckboxDeint2x,$GUI_DISABLE)
 	EndIf
 	if _GUICtrlComboBox_GetCurSel($ComboVCodec) = 1 Then ;~ 	H.264 Cbr
 		GUICtrlSetState ($InputVBitrate,$GUI_ENABLE)
 		GUICtrlSetState ($InputVCrf,$GUI_DISABLE)
+		GUICtrlSetState ($InputVQScale,$GUI_DISABLE)
 	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 2 then ;~ 	H.264 Crf
 		GUICtrlSetState ($InputVCrf,$GUI_ENABLE)
 		GUICtrlSetState ($InputVBitrate,$GUI_DISABLE)
-	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 then ;~ 	Mpeg2
+		GUICtrlSetState ($InputVQScale,$GUI_DISABLE)
+	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 then ;~ 	Mpeg2Video Cbr
 		GUICtrlSetState ($InputVBitrate,$GUI_ENABLE)
+		GUICtrlSetState ($InputVCrf,$GUI_DISABLE)
+		GUICtrlSetState ($InputVQScale,$GUI_DISABLE)
+	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 4 then ;~ 	Mpeg2Video QScale
+		GUICtrlSetState ($InputVQScale,$GUI_ENABLE)
+		GUICtrlSetState ($InputVBitrate,$GUI_DISABLE)
 		GUICtrlSetState ($InputVCrf,$GUI_DISABLE)
 	EndIf
 	if _GUICtrlComboBox_GetCurSel($ComboACodec) = 0 Then
@@ -458,6 +482,12 @@ Func LoadConfiguration()
 	EndIf
 	GUICtrlSetData($InputVCrf, $sInputVCrf)
 
+	Local $sInputVQScale = IniRead($Config, "Encoding", "VQScale","")
+	if $sInputVQScale = "" Then
+		$sInputVQScale = "5"
+	EndIf
+	GUICtrlSetData($InputVQScale, $sInputVQScale)
+
 	Local $sCheckboxDeint = IniRead($Config, "Encoding", "Deint", true)
 	if $sCheckboxDeint = "true" Then
 		GUICtrlSetState($CheckboxDeint, $GUI_CHECKED)
@@ -523,6 +553,9 @@ Func SaveConfiguration()
 	Local $sInputVCrf = GUICtrlRead($InputVCrf)
 	IniWrite($Config, "Encoding", "VCrf", $sInputVCrf)
 
+	Local $sInputVQScale = GUICtrlRead($InputVQScale)
+	IniWrite($Config, "Encoding", "VQScale", $sInputVQScale)
+
 	Local $sCheckboxDeint = GUICtrlRead($CheckboxDeint) = $GUI_CHECKED
 	IniWrite($Config, "Encoding", "Deint", $sCheckboxDeint)
 
@@ -538,3 +571,20 @@ Func SaveConfiguration()
 
 EndFunc
 
+Func LoadProfile()
+	$Profile = FileOpenDialog("Load profile", @ScriptDir, "Profile (*.pro)", BitOR($FD_PATHMUSTEXIST,$FD_FILEMUSTEXIST))
+	if not @error > 0  then
+		$EncodingSection = IniReadSection($Profile, "Encoding")
+		IniWriteSection($Config, "Encoding", $EncodingSection)
+		LoadConfiguration()
+	EndIf
+EndFunc
+
+Func SaveProfile()
+	$Profile = FileSaveDialog("Save profile", @ScriptDir, "Profile (*.pro)", BitOR($FD_PATHMUSTEXIST,$FD_PROMPTOVERWRITE))
+	if not @error > 0  then
+		SaveConfiguration()
+		$EncodingSection = IniReadSection($Config, "Encoding")
+		IniWriteSection($Profile, "Encoding", $EncodingSection)
+	EndIf
+EndFunc
