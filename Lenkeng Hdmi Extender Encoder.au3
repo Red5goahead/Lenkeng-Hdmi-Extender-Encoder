@@ -122,6 +122,10 @@ Global $dStartTimeEncode = _NowCalc();
 
 LoadConfiguration()
 
+if not FileExists($Config) then
+	SaveConfiguration()
+EndIf
+
 _GUICtrlButton_SetFocus($ButtonExit, true)
 
 ;~ _Timer_SetTimer($MainForm, 1000, "HandleEncodingMessage") ; create timer
