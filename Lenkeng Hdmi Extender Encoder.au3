@@ -1,3 +1,9 @@
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Icon=icons8-video-editing.ico
+#AutoIt3Wrapper_UseUpx=y
+#AutoIt3Wrapper_Res_Comment=https://github.com/Red5goahead/Lenkeng-Hdmi-Extender-Encoder
+#AutoIt3Wrapper_Res_Fileversion=1.3.0.0
+#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 #cs ----------------------------------------------------------------------------
 
  AutoIt Version: 3.3.14.2
@@ -100,7 +106,7 @@ _GUICtrlStatusBar_SetParts($StatusBar, $StatusBar_PartsWidth)
 _GUICtrlStatusBar_SetText($StatusBar, "Ready", 0)
 _GUICtrlStatusBar_SetText($StatusBar, "", 1)
 _GUICtrlStatusBar_SetText($StatusBar, "", 2)
-_GUICtrlStatusBar_SetText($StatusBar, "v 1.2", 3)
+_GUICtrlStatusBar_SetText($StatusBar, "v 1.03", 3)
 GUISetState(@SW_SHOW)
 Dim $MainForm_AccelTable[3][2] = [["^e", $ButtonEncode],["^a", $ButtonAbort],["^x", $ButtonExit]]
 GUISetAccelerators($MainForm_AccelTable)
@@ -191,12 +197,23 @@ While 1
 WEnd
 
 Func Preview()
+;~ 		$sFFMPegFolder=GUICtrlRead($InputFFMpegFolder)
+;~ 		if $sFFMPegFolder = "" Then
+;~ 			$sFFMPegFolder = @ScriptDir & "\FFMPEG"
+;~ 		EndIf
+;~ 		Local $sExeMPlayer = "MPLAYER"
+;~ 		Local $sCommandMPlayer = StringFormat("-xy 720 -geometry 50%:50% -aspect 16:9 -vf pp=l5 -ss %s %s", _GUICtrlStatusBar_GetText($StatusBar, 2), $sFileFFMpegRaw)
+;~ 		$iPIDMPlayer = ShellExecute($sExeMPlayer, $sCommandMPlayer, $sFFMPegFolder, $SHEX_OPEN, @SW_HIDE)
+
 		$sFFMPegFolder=GUICtrlRead($InputFFMpegFolder)
 		if $sFFMPegFolder = "" Then
 			$sFFMPegFolder = @ScriptDir & "\FFMPEG"
 		EndIf
-		Local $sExeMPlayer = "MPLAYER"
-		Local $sCommandMPlayer = StringFormat("-xy 720 -geometry 50%:50% -aspect 16:9 -vf pp=l5 -ss %s %s", _GUICtrlStatusBar_GetText($StatusBar, 2), $sFileFFMpegRaw)
+		Local $sExeMPlayer = "FFPLAY"
+		Local $sCommandMPlayer = StringFormat("-ss %s -loglevel quiet -i %s -vf yadif=1,scale=640:-1,setdar=16/9 -window_title ""Lenkeng/ESYNiC HDMI Extender Encoder - Preview %s""", _
+			_GUICtrlStatusBar_GetText($StatusBar, 2), _
+			$sFileFFMpegRaw, _
+			$sFileNameFFMpegRaw)
 		$iPIDMPlayer = ShellExecute($sExeMPlayer, $sCommandMPlayer, $sFFMPegFolder, $SHEX_OPEN, @SW_HIDE)
 EndFunc
 
@@ -214,7 +231,7 @@ Func Encode()
 	$sFileNameFFMpegDest = "output" & @YEAR & @MON & @MDAY & "_" & @HOUR & @MIN & @SEC & "." & $ext
 	$sFileFFMpegDest = $sInputDestinationFolder & "\" & $sFileNameFFMpegDest
 
- 	$sFileNameFFMpegRaw = "output" & @YEAR & @MON & @MDAY & "_" & @HOUR & @MIN & @SEC & "_raw.mkv"
+ 	$sFileNameFFMpegRaw = "output" & @YEAR & @MON & @MDAY & "_" & @HOUR & @MIN & @SEC & "_raw.ts"
 	$sFileFFMpegRaw = $sInputDestinationFolder & "\" & $sFileNameFFMpegRaw
 
 	$sFFMPegFolder=GUICtrlRead($InputFFMpegFolder)
