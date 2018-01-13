@@ -19,6 +19,7 @@
 #include <EditConstants.au3>
 #include <GUIConstantsEx.au3>
 #include <GuiIPAddress.au3>
+
 #include <StaticConstants.au3>
 #include <WindowsConstants.au3>
 #include <MsgBoxConstants.au3>
@@ -32,89 +33,88 @@
 #include <GuiEdit.au3>
 
 #Region ### START Koda GUI section ### Form=MainForm.kxf
-$MainForm = GUICreate("Lenkeng/ESYNiC HDMI Extender Encoder", 1061, 596, 195, 119)
-$GroupInOut = GUICtrlCreateGroup("&Source && Destination", 8, 16, 1041, 153)
+$MainForm = GUICreate("Lenkeng/ESYNiC HDMI Extender Encoder", 1061, 609, 183, 117)
+$GroupInOut = GUICtrlCreateGroup("&Source && Destination", 8, 16, 1041, 161)
 GUICtrlSetResizing(-1, $GUI_DOCKTOP)
-$InputIpAddress = GUICtrlCreateInput("239.255.42.42", 112, 35, 121, 21)
-$InputPort = GUICtrlCreateInput("5004", 278, 35, 53, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+$InputIpAddress = GUICtrlCreateInput("239.255.42.42", 128, 35, 121, 21)
+$InputPort = GUICtrlCreateInput("5004", 294, 35, 53, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
 GUICtrlSetLimit(-1, 5)
-$InputFFMpegFolder = GUICtrlCreateInput("", 112, 66, 573, 21)
+$ButtonMonitor = GUICtrlCreateButton("...", 355, 33, 35, 25, $BS_DEFPUSHBUTTON)
+GUICtrlSetTip(-1, "Monitor broadcast")
+$InputFFMpegFolder = GUICtrlCreateInput("", 128, 66, 573, 21)
 GUICtrlSetTip(-1, "Leave blank to use ffmpeg executables in ffmeg folder (default)")
-$ButtonSetFFMPegFolder = GUICtrlCreateButton("...", 691, 65, 35, 25, $BS_DEFPUSHBUTTON)
+$ButtonSetFFMPegFolder = GUICtrlCreateButton("...", 707, 65, 35, 25, $BS_DEFPUSHBUTTON)
 GUICtrlSetTip(-1, "Select FFMpeg folder binaries")
-$ButtonResetFFMPegFolder = GUICtrlCreateButton("Reset", 732, 66, 35, 25, $BS_DEFPUSHBUTTON)
+$ButtonResetFFMPegFolder = GUICtrlCreateButton("Reset", 748, 66, 35, 25, $BS_DEFPUSHBUTTON)
 GUICtrlSetTip(-1, "Reset FFMpeg folder to default")
-$InputDestinationFolder = GUICtrlCreateInput("", 112, 100, 573, 21)
-$ButtonSetDestination = GUICtrlCreateButton("...", 692, 98, 35, 25, $BS_DEFPUSHBUTTON)
+$InputDestinationFolder = GUICtrlCreateInput("", 128, 100, 573, 21)
+$ButtonSetDestination = GUICtrlCreateButton("...", 708, 98, 35, 25, $BS_DEFPUSHBUTTON)
 GUICtrlSetTip(-1, "Select destination folder")
-$ButtonResetDestination = GUICtrlCreateButton("Reset", 732, 98, 35, 25, $BS_DEFPUSHBUTTON)
+$ButtonResetDestination = GUICtrlCreateButton("Reset", 748, 98, 35, 25, $BS_DEFPUSHBUTTON)
 GUICtrlSetTip(-1, "Reset destination folder to default")
-$InputUStreamUrl = GUICtrlCreateInput("", 112, 133, 324, 21)
-GUICtrlSetTip(-1, "Link Url RMTP")
-$InputUStreamChannelKey = GUICtrlCreateInput("", 447, 133, 237, 21)
-GUICtrlSetTip(-1, "Channel Key")
+$InputBroadcastMpegTS = GUICtrlCreateInput("", 128, 137, 573, 21)
+$ButtonResetBroadcastMpegTS = GUICtrlCreateButton("Reset", 709, 134, 35, 25, $BS_DEFPUSHBUTTON)
+GUICtrlSetTip(-1, "Reset destination folder to default")
 $LabelBroadcastIp = GUICtrlCreateLabel("Broadcast IP", 16, 41, 65, 17)
 $LabelDestinationFolder = GUICtrlCreateLabel("DestinationFolder", 16, 103, 86, 17)
 $LabelFFMpegFolder = GUICtrlCreateLabel("FFMpeg folder", 16, 71, 72, 17)
-$LabelPort = GUICtrlCreateLabel("Port", 248, 39, 23, 17)
-$LabelUStream = GUICtrlCreateLabel("uStream.tv", 17, 138, 55, 17)
-$ButtonUStreamReset = GUICtrlCreateButton("Reset", 692, 130, 35, 25, $BS_DEFPUSHBUTTON)
-GUICtrlSetTip(-1, "Reset uStream configuration")
+$LabelPort = GUICtrlCreateLabel("Port", 256, 39, 23, 17)
+$LabelBroadcastMPegTs = GUICtrlCreateLabel("MPEG-TS Broadcast ", 16, 140, 106, 17)
 GUICtrlCreateGroup("", -99, -99, 1, 1)
-$GroupEncodingProfile = GUICtrlCreateGroup("Profile", 8, 176, 1041, 352)
-$ComboContainer = GUICtrlCreateCombo("", 16, 212, 145, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
+$GroupEncodingProfile = GUICtrlCreateGroup("Profile", 8, 184, 1041, 352)
+$ComboContainer = GUICtrlCreateCombo("", 16, 220, 145, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
 GUICtrlSetData(-1, "mp4|ts|mkv|m2ts", "ts")
-$ComboPreset = GUICtrlCreateCombo("", 192, 212, 97, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
+$ComboPreset = GUICtrlCreateCombo("", 192, 220, 97, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
 GUICtrlSetData(-1, "default|ultrafast|superfast|veryfast|faster|fast|medium|slow", "default")
-$ComboVCodec = GUICtrlCreateCombo("", 16, 268, 145, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
-GUICtrlSetData(-1, "copy|h264 (CBR)|h264 (CRF)|h264_nvenc (CBR)|mpeg2video (CBR)|mpeg2video (QSCALE)", "copy")
-$ComboScaleTo = GUICtrlCreateCombo("", 191, 268, 97, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
+$ComboVCodec = GUICtrlCreateCombo("", 16, 276, 145, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
+GUICtrlSetData(-1, "copy|h264 (CBR)|h264 (CRF)|h264_nvenc|mpeg2video (CBR)|mpeg2video (QSCALE)|hevc_nvenc", "copy")
+$ComboScaleTo = GUICtrlCreateCombo("", 191, 276, 97, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
 GUICtrlSetData(-1, "720:480|704:480|720:576|704:576|1280:720|1920:1080", "1280:720")
-$InputVBitrate = GUICtrlCreateInput("5000", 321, 267, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+$InputVBitrate = GUICtrlCreateInput("5000", 321, 275, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
 GUICtrlSetLimit(-1, 5)
 GUICtrlSetTip(-1, "Cbr (costant bitrate)")
-$InputVCrf = GUICtrlCreateInput("18", 417, 267, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+$InputVCrf = GUICtrlCreateInput("18", 417, 275, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
 GUICtrlSetLimit(-1, 2)
 GUICtrlSetTip(-1, "Constant Rate Factor")
-$InputVQScale = GUICtrlCreateInput("5", 513, 267, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+$InputVQScale = GUICtrlCreateInput("5", 513, 275, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
 GUICtrlSetLimit(-1, 2)
 GUICtrlSetTip(-1, "Quantizer scale")
-$ComboACodec = GUICtrlCreateCombo("", 16, 324, 145, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
+$ComboACodec = GUICtrlCreateCombo("", 16, 332, 145, 25, BitOR($CBS_DROPDOWNLIST,$CBS_AUTOHSCROLL))
 GUICtrlSetData(-1, "copy|aac|ac3|libmp3lame|mp2", "copy")
-$InputABitrate = GUICtrlCreateInput("192", 321, 323, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+$InputABitrate = GUICtrlCreateInput("192", 321, 331, 75, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
 GUICtrlSetLimit(-1, 5)
-$CheckboxDeint = GUICtrlCreateCheckbox("Deinterlace", 16, 363, 74, 17)
+$CheckboxDeint = GUICtrlCreateCheckbox("Deinterlace", 16, 371, 74, 17)
 GUICtrlSetState(-1, $GUI_CHECKED)
-$CheckboxDeint2x = GUICtrlCreateCheckbox("Deinterlace (2x)", 104, 363, 95, 17)
-$CheckboxUStream = GUICtrlCreateCheckbox("Stream to uStream.tv", 214, 363, 135, 17)
-GUICtrlSetTip(-1, "Encode to uStream.Tv")
-$InputRawProcess = GUICtrlCreateInput("", 16, 413, 1020, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_READONLY))
+$CheckboxDeint2x = GUICtrlCreateCheckbox("Deinterlace (2x)", 104, 371, 95, 17)
+$CheckboxOnlyBroadcastMpegTS = GUICtrlCreateCheckbox("Only broadcast", 216, 371, 95, 17)
+$InputRawProcess = GUICtrlCreateInput("", 16, 421, 1020, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_READONLY))
 GUICtrlSetTip(-1, "Link Url RMTP")
-$InputMainProcess = GUICtrlCreateInput("", 16, 461, 1020, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_READONLY))
+$InputMainProcess = GUICtrlCreateInput("", 16, 469, 1020, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_READONLY))
 GUICtrlSetTip(-1, "Link Url RMTP")
-$ButtonProfileLoad = GUICtrlCreateButton("Load", 437, 494, 75, 25)
-$ButtonProfileSave = GUICtrlCreateButton("Save", 525, 494, 75, 25)
-$LabelContainer = GUICtrlCreateLabel("Container", 16, 194, 49, 17)
-$LabelVCodec = GUICtrlCreateLabel("Video codec", 18, 250, 64, 17)
-$LabelACodec = GUICtrlCreateLabel("Audio codec", 18, 306, 64, 17)
-$LabelScaleTo = GUICtrlCreateLabel("Scale to", 191, 250, 43, 17)
-$LabelPreset = GUICtrlCreateLabel("Preset", 192, 194, 34, 17)
-$LabelVBitrate = GUICtrlCreateLabel("Video bitrate (Kb.)", 320, 250, 88, 17)
-$LabelAVCodec = GUICtrlCreateLabel("Audio bitrate (Kb.)", 320, 306, 88, 17)
-$LabelVCrf = GUICtrlCreateLabel("CRF (0-51)", 416, 250, 55, 17)
-$LabelVQScale = GUICtrlCreateLabel("QScale (0-31)", 512, 250, 69, 17)
-$LabelMainProcess = GUICtrlCreateLabel("Transport stream process command line", 17, 394, 191, 17)
-$LabelMainProces = GUICtrlCreateLabel("Main process command line", 17, 442, 135, 17)
+$ButtonProfileLoad = GUICtrlCreateButton("Load", 437, 502, 75, 25)
+$ButtonProfileSave = GUICtrlCreateButton("Save", 525, 502, 75, 25)
+$LabelContainer = GUICtrlCreateLabel("Container", 16, 202, 49, 17)
+$LabelVCodec = GUICtrlCreateLabel("Video codec", 18, 258, 64, 17)
+$LabelACodec = GUICtrlCreateLabel("Audio codec", 18, 314, 64, 17)
+$LabelScaleTo = GUICtrlCreateLabel("Scale to", 191, 258, 43, 17)
+$LabelPreset = GUICtrlCreateLabel("Preset", 192, 202, 34, 17)
+$LabelVBitrate = GUICtrlCreateLabel("Video bitrate (Kb.)", 320, 258, 88, 17)
+$LabelAVCodec = GUICtrlCreateLabel("Audio bitrate (Kb.)", 320, 314, 88, 17)
+$LabelVCrf = GUICtrlCreateLabel("CRF (0-51)", 416, 258, 55, 17)
+$LabelVQScale = GUICtrlCreateLabel("QScale (0-31)", 512, 258, 69, 17)
+$LabelMainProcess = GUICtrlCreateLabel("Transport stream process command line", 17, 402, 191, 17)
+$LabelMainProces = GUICtrlCreateLabel("Main process command line", 17, 450, 135, 17)
+$CheckboxBroadcastMPegTSRecord = GUICtrlCreateCheckbox("Broadcast && Record", 312, 371, 127, 17)
 GUICtrlCreateGroup("", -99, -99, 1, 1)
-$ButtonEncode = GUICtrlCreateButton("Encode (CTRL+E)", 300, 538, 103, 25, $BS_DEFPUSHBUTTON)
+$ButtonEncode = GUICtrlCreateButton("Encode (CTRL+E)", 296, 549, 103, 25, $BS_DEFPUSHBUTTON)
 GUICtrlSetTip(-1, "Start encoding")
-$ButtonPreview = GUICtrlCreateButton("Preview", 413, 538, 103, 25, $BS_DEFPUSHBUTTON)
+$ButtonPreview = GUICtrlCreateButton("Preview", 409, 549, 103, 25, $BS_DEFPUSHBUTTON)
 GUICtrlSetState(-1, $GUI_DISABLE)
 GUICtrlSetTip(-1, "Preview")
-$ButtonAbort = GUICtrlCreateButton("Abort (CTRL+A)", 528, 538, 103, 25, $BS_DEFPUSHBUTTON)
+$ButtonStop = GUICtrlCreateButton("Stop (CTRL+A)", 524, 549, 103, 25, $BS_DEFPUSHBUTTON)
 GUICtrlSetState(-1, $GUI_DISABLE)
-GUICtrlSetTip(-1, "Abort encoding")
-$ButtonExit = GUICtrlCreateButton("Exit (CTRL+X)", 644, 538, 103, 25, $BS_DEFPUSHBUTTON)
+GUICtrlSetTip(-1, "Stop encoding")
+$ButtonExit = GUICtrlCreateButton("Exit", 640, 549, 103, 25, $BS_DEFPUSHBUTTON)
 GUICtrlSetTip(-1, "Exit")
 $StatusBar = _GUICtrlStatusBar_Create($MainForm)
 Dim $StatusBar_PartsWidth[4] = [100, 910, 1000, -1]
@@ -122,9 +122,9 @@ _GUICtrlStatusBar_SetParts($StatusBar, $StatusBar_PartsWidth)
 _GUICtrlStatusBar_SetText($StatusBar, "Ready", 0)
 _GUICtrlStatusBar_SetText($StatusBar, "", 1)
 _GUICtrlStatusBar_SetText($StatusBar, "", 2)
-_GUICtrlStatusBar_SetText($StatusBar, "v 1.04", 3)
+_GUICtrlStatusBar_SetText($StatusBar, "v 1.05", 3)
 GUISetState(@SW_SHOW)
-Dim $MainForm_AccelTable[3][2] = [["^e", $ButtonEncode],["^a", $ButtonAbort],["^x", $ButtonExit]]
+Dim $MainForm_AccelTable[2][2] = [["^e", $ButtonEncode],["^a", $ButtonStop]]
 GUISetAccelerators($MainForm_AccelTable)
 #EndRegion ### END Koda GUI section ###
 
@@ -134,7 +134,8 @@ Global $Config = @ScriptDir & "\config"
 Global $sFFMPegFolder = ""
 Global $iPIDFFMpegDest = 0
 Global $iPIDFFMpegRaw = 0
-Global $iPIDMPlayer = 0
+Global $iPIDFFPlayMonitor = 0
+Global $iPIDFFPlayPreview = 0
 Global $guidPIDFFMpegDest = ""
 Global $guidPIDFFMpegRaw = ""
 Global $sFileNameFFMpegDest = ""
@@ -148,7 +149,6 @@ Global $sUStream = ""
 
 Global $bGrabMode = false;
 Global $bEncodeToFileMode = false;
-Global $bEncodeToUStreamMode = false;
 
 Global $sCommandRaw = ""
 Global $sCommand = ""
@@ -173,10 +173,8 @@ While 1
 			HandleControls()
 		Case $InputPort
 			HandleControls()
-		Case $InputUStreamUrl
-			HandleControls()
-		Case $InputUStreamChannelKey
-			HandleControls()
+		Case $ButtonMonitor
+			Monitor()
 		Case $ButtonSetFFMPegFolder
 			$sFFMPegFolder=GUICtrlRead($InputFFMpegFolder)
 			Local $sFileSelectFolder = FileSelectFolder("Select FFMpeg folder binaries", $sFFMPegFolder)
@@ -194,13 +192,16 @@ While 1
 				GUICtrlSetData($InputDestinationFolder,$sFileSelectFolder)
 				SaveConfiguration()
 			endif
-		Case $ButtonResetDestination
-			GUICtrlSetData($InputDestinationFolder, @UserProfileDir & "\Videos")
+		Case $ButtonResetFFMPegFolder
+			GUICtrlSetData($InputFFMpegFolder, "")
 			SaveConfiguration()
-		Case $ButtonUStreamReset
-			GUICtrlSetData($InputUStreamUrl, "")
-			GUICtrlSetData($InputUStreamChannelKey, "")
+		Case $InputBroadcastMpegTS
 			SaveConfiguration()
+			HandleControls()
+		Case $ButtonResetBroadcastMpegTS
+			GUICtrlSetData($InputBroadcastMpegTS, "")
+			SaveConfiguration()
+			HandleControls()
 		Case $ComboContainer
 			HandleControls()
 		Case $ComboPreset
@@ -229,7 +230,15 @@ While 1
 				GUICtrlSetState($CheckboxDeint, $GUI_UNCHECKED)
 			EndIf
 			HandleControls()
-		Case $CheckboxUStream
+		Case $CheckboxOnlyBroadcastMpegTS
+			if GUICtrlRead($CheckboxOnlyBroadcastMpegTS) = $GUI_CHECKED Then
+				GUICtrlSetState($CheckboxBroadcastMPegTSRecord, $GUI_UNCHECKED)
+			EndIf
+			HandleControls()
+		Case $CheckboxBroadcastMPegTSRecord
+			if GUICtrlRead($CheckboxBroadcastMPegTSRecord) = $GUI_CHECKED Then
+				GUICtrlSetState($CheckboxOnlyBroadcastMpegTS, $GUI_UNCHECKED)
+			EndIf
 			HandleControls()
 		Case $ButtonProfileLoad
 			LoadProfile()
@@ -239,7 +248,7 @@ While 1
 			Encode()
 		Case $ButtonPreview
 			Preview()
-		Case $ButtonAbort
+		Case $ButtonStop
 			Abort()
 		Case $ButtonExit
 			SaveConfiguration()
@@ -250,21 +259,38 @@ While 1
 	EndIf
 WEnd
 
+Func Monitor()
+	if ProcessExists($iPIDFFPlayMonitor) = 0 Then
+		$sFFMPegFolder=GUICtrlRead($InputFFMpegFolder)
+		if $sFFMPegFolder = "" Then
+			$sFFMPegFolder = @ScriptDir & "\FFMPEG"
+		EndIf
+		Local $sExe = $sFFMPegFolder & "\FFPLAY"
+		Local $sCommandPlay = StringFormat("-loglevel quiet -i udp://@%s:%s -vf yadif=1,scale=1920:1080 -x 720 -y 404 -window_title ""Lenkeng/ESYNiC HDMI Extender Encoder - Monitor", GUICtrlRead($InputIpAddress), GUICtrlRead($InputPort))
+		$iPIDFFPlayMonitor = ShellExecute($sExe, $sCommandPlay, $sFFMPegFolder, $SHEX_OPEN, @SW_HIDE)
+		Local $hWnd = WinWait("Lenkeng/ESYNiC HDMI Extender Encoder - Monitor", "", 5)
+		WinSetState($hWnd, "", @SW_SHOW)
+	EndIf
+EndFunc
+
 Func Preview()
 		$sFFMPegFolder=GUICtrlRead($InputFFMpegFolder)
 		if $sFFMPegFolder = "" Then
 			$sFFMPegFolder = @ScriptDir & "\FFMPEG"
 		EndIf
-		Local $sExeMPlayer = "FFPLAY"
-		Local $sCommandMPlayer = StringFormat("-ss %s -loglevel quiet -i %s -vf yadif=1,scale=640:-1,setdar=16/9 -window_title ""Lenkeng/ESYNiC HDMI Extender Encoder - Preview %s""", _
-			_GUICtrlStatusBar_GetText($StatusBar, 2), _
-			$sFileFFMpegRaw, _
-			$sFileNameFFMpegRaw)
-		$iPIDMPlayer = ShellExecute($sExeMPlayer, $sCommandMPlayer, $sFFMPegFolder, $SHEX_OPEN, @SW_HIDE)
+		Local $sExeFFPlay = "FFPLAY"
+		Local $sCommandFFPlay = StringFormat("-loglevel quiet -i %s -vf yadif=1,scale=720:404,setdar=16/9 -window_title ""Lenkeng/ESYNiC HDMI Extender Encoder - Preview %s""", _
+			$sFileFFMpegDest, _
+			$sFileNameFFMpegDest, _
+			_GUICtrlStatusBar_GetText($StatusBar, 2))
+		ConsoleWrite($sCommandFFPlay)
+		$iPIDFFPlayPreview = ShellExecute($sExeFFPlay, $sCommandFFPlay, $sFFMPegFolder, $SHEX_OPEN, @SW_HIDE)
+		Local $hWnd = WinWait("Lenkeng/ESYNiC HDMI Extender Encoder - Preview", "", 5)
+		WinSetState($hWnd, "", @SW_SHOW)
 EndFunc
 
 Func Encode()
-	GUICtrlSetState($ButtonAbort, $GUI_ENABLE)
+	GUICtrlSetState($ButtonStop, $GUI_ENABLE)
 	GUICtrlSetState($ButtonEncode, $GUI_DISABLE)
 	GUICtrlSetState($ButtonExit, $GUI_DISABLE)
 
@@ -337,11 +363,7 @@ Func HandleEncodingMessage()
 		Local $sElapsedHH = _DateDiff("h", $dStartTimeEncode, _NowCalc());
 		Local $sElapsedMM = _DateDiff("n", $dStartTimeEncode, _NowCalc());
 		Local $sElapsedSS = _DateDiff("s", $dStartTimeEncode, _NowCalc());
-		if $bEncodeToUStreamMode = False then
-			_GUICtrlStatusBar_SetText($StatusBar, StringUpper($sFileNameFFMpegDest), 1)
-		Else
-			_GUICtrlStatusBar_SetText($StatusBar, GUICtrlRead($InputUStreamUrl), 1)
-		EndIf
+		_GUICtrlStatusBar_SetText($StatusBar, StringUpper($sFileNameFFMpegDest), 1)
 		_GUICtrlStatusBar_SetText($StatusBar, Sec_2_Time_Format($sElapsedSS), 2)
 	EndIf
 	if $iPIDFFMpegRaw > 0 Then
@@ -354,7 +376,7 @@ Func HandleEncodingMessage()
 			_GUICtrlStatusBar_SetText($StatusBar, "Error...", 0)
 		EndIf
 	EndIf
-	if ProcessExists($iPIDMPlayer) = 0 AND _GUICtrlStatusBar_GetText($StatusBar, 2) <> "" Then
+	if ProcessExists($iPIDFFPlayPreview) = 0 AND _GUICtrlStatusBar_GetText($StatusBar, 2) <> "" AND GUICtrlRead($ComboContainer) = "mkv" Then
 		if GUICtrlGetState($ButtonPreview) <> $GUI_ENABLE then
 			GUICtrlSetState($ButtonPreview, $GUI_ENABLE)
 		EndIf
@@ -404,7 +426,7 @@ Func Abort()
 		_GUICtrlStatusBar_SetText($StatusBar, "", 2)
 	EndIf
 
-	GUICtrlSetState($ButtonAbort, $GUI_DISABLE)
+	GUICtrlSetState($ButtonStop, $GUI_DISABLE)
 	GUICtrlSetState($ButtonEncode, $GUI_ENABLE)
 	GUICtrlSetState($ButtonExit, $GUI_ENABLE)
 
@@ -421,6 +443,8 @@ Func HandleControls()
 	GUICtrlSetState ($InputABitrate,$GUI_ENABLE)
 	GUICtrlSetState ($CheckboxDeint,$GUI_ENABLE)
 	GUICtrlSetState ($CheckboxDeint2x,$GUI_ENABLE)
+	GUICtrlSetState ($CheckboxOnlyBroadcastMpegTS,$GUI_ENABLE)
+	GUICtrlSetState ($CheckboxBroadcastMPegTSRecord,$GUI_ENABLE)
 	if _GUICtrlComboBox_GetCurSel($ComboVCodec) = 0 Then
 		GUICtrlSetState ($ComboScaleTo,$GUI_DISABLE)
 		GUICtrlSetState ($InputVBitrate,$GUI_DISABLE)
@@ -437,7 +461,7 @@ Func HandleControls()
 		GUICtrlSetState ($InputVCrf,$GUI_ENABLE)
 		GUICtrlSetState ($InputVBitrate,$GUI_DISABLE)
 		GUICtrlSetState ($InputVQScale,$GUI_DISABLE)
-	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 then ;~ 	H.264 cbr (nvenc)
+	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 Or _GUICtrlComboBox_GetCurSel($ComboVCodec) = 6 then ;~ 	H.264 cbr (nvenc)
 		GUICtrlSetState ($InputVBitrate,$GUI_ENABLE)
 		GUICtrlSetState ($InputVCrf,$GUI_DISABLE)
 		GUICtrlSetState ($InputVQScale,$GUI_DISABLE)
@@ -453,32 +477,24 @@ Func HandleControls()
 	if _GUICtrlComboBox_GetCurSel($ComboACodec) = 0 Then
 		GUICtrlSetState ($InputABitrate,$GUI_DISABLE)
 	EndIf
-	if GUICtrlRead($CheckboxUStream) = $GUI_UNCHECKED Then
-		If (_GUICtrlComboBox_GetCurSel($ComboVCodec) = 0) And (_GUICtrlComboBox_GetCurSel($ComboACodec) = 0) Then
-			$bGrabMode = True
-			$bEncodeToFileMode = False
-			$bEncodeToUStreamMode = False
-			GUICtrlSetData  ($ButtonEncode,"Grab (CTRL+E)")
-			GUICtrlSetState ($ComboContainer,$GUI_DISABLE)
-			GUICtrlSetState ($ComboPreset,$GUI_DISABLE)
-		Else
-			$bGrabMode = False
-			$bEncodeToFileMode = True
-			$bEncodeToUStreamMode = False
-			GUICtrlSetData  ($ButtonEncode,"Encode (CTRL+E)")
-		EndIf
+
+	If (_GUICtrlComboBox_GetCurSel($ComboVCodec) = 0) And (_GUICtrlComboBox_GetCurSel($ComboACodec) = 0) Then
+		$bGrabMode = True
+		$bEncodeToFileMode = False
+		$bEncodeToUStreamMode = False
+		GUICtrlSetData  ($ButtonEncode,"Grab (CTRL+E)")
+		GUICtrlSetState ($ComboContainer,$GUI_DISABLE)
+		GUICtrlSetState ($ComboPreset,$GUI_DISABLE)
 	Else
 		$bGrabMode = False
-		$bEncodeToFileMode = False
-		$bEncodeToUStreamMode = True
-		GUICtrlSetState ($ComboContainer,$GUI_DISABLE)
-		GUICtrlSetState ($ComboVCodec,$GUI_DISABLE)
-		GUICtrlSetState ($InputVBitrate,$GUI_ENABLE)
-		GUICtrlSetState ($InputVCrf,$GUI_DISABLE)
-		GUICtrlSetState ($ComboScaleTo,$GUI_DISABLE)
-		GUICtrlSetState ($ComboACodec,$GUI_DISABLE)
-		GUICtrlSetState ($CheckboxDeint2x,$GUI_DISABLE)
-		GUICtrlSetData($ButtonEncode,"Stream (CTRL+E)")
+		$bEncodeToFileMode = True
+		$bEncodeToUStreamMode = False
+		GUICtrlSetData  ($ButtonEncode,"Encode (CTRL+E)")
+	EndIf
+
+	if GUICtrlRead($InputBroadcastMpegTS) = "" Then
+		GUICtrlSetState ($CheckboxOnlyBroadcastMpegTS,$GUI_DISABLE)
+		GUICtrlSetState ($CheckboxBroadcastMPegTSRecord,$GUI_DISABLE)
 	EndIf
 
 	GenerateRawProcessCommandLine()
@@ -499,7 +515,7 @@ Func GenerateRawProcessCommandLine()
  	$sFileNameFFMpegRaw = "hdmi" & @MON & @MDAY & "_" & @HOUR & @MIN & @SEC & ".ts"
 	$sFileFFMpegRaw = $sInputDestinationFolder & "\" & $sFileNameFFMpegRaw
 
-	if $bEncodeToFileMode = True or $bEncodeToUStreamMode = True then
+	if $bEncodeToFileMode = True then
 		$sCommandRaw = StringFormat("-y -loglevel quiet -i udp://@%s:%s ", GUICtrlRead($InputIpAddress), GUICtrlRead($InputPort))
 		$sCommandRaw = $sCommandRaw & " "
 		$sCommandRaw = $sCommandRaw & "-c:v copy -c:a copy"
@@ -515,6 +531,7 @@ EndFunc
 Func GenerateMainProcessCommandLine()
 
 	$sCommand = ""
+	$sCommandBroadcastMPegTS = ""
 
 	Local $ext = GUICtrlRead($ComboContainer)
 	Local $sInputDestinationFolder = GUICtrlRead($InputDestinationFolder)
@@ -527,9 +544,13 @@ Func GenerateMainProcessCommandLine()
 
 	Local $sCodec = GUICtrlRead($ComboVCodec)
 	Local $bHWEnc = False
-	If _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 Or _GUICtrlComboBox_GetCurSel($ComboVCodec) = 4 Then
+	If _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 Or _GUICtrlComboBox_GetCurSel($ComboVCodec) = 6 Then ;~ 	H.264/Hevc Nvenc
 		$bHWEnc = True
 	EndIf
+
+	Local $aScaleTo=StringSplit(GUICtrlRead($ComboScaleTo),":")
+	Local $iWidth = $aScaleTo[1]
+	Local $iHeight = $aScaleTo[2]
 
 	; entry & input
 	if $bGrabMode then
@@ -539,7 +560,7 @@ Func GenerateMainProcessCommandLine()
 		if $bHWEnc = False then
 			$sCommand = StringFormat("-re -y -loglevel quiet -i %s", $sFileNameFFMpegRaw)
 		Else
-			$sCommand = StringFormat("-re -y -loglevel quiet -c:v h264_cuvid -i %s", $sFileNameFFMpegRaw)
+			$sCommand = StringFormat("-re -y -loglevel quiet -hwaccel cuda -c:v h264_cuvid -resize 1920x1080 -i %s", $sFileNameFFMpegRaw)
 		EndIf
 		$sCommand = $sCommand & " "
 	EndIf
@@ -553,104 +574,85 @@ Func GenerateMainProcessCommandLine()
 		$sVfParam = $sVfParam & "yadif=1,"
 	EndIf
 
-	Local $aScaleTo=StringSplit(GUICtrlRead($ComboScaleTo),":")
-	Local $iWidth = $aScaleTo[1]
-	Local $iHeight = $aScaleTo[2]
-
-	$sVfParam = $sVfParam & StringFormat("scale=%s:%s", $iWidth, $iHeight)
-	if $iWidth/$iHeight < 16/9 then
-		$sVfParam = $sVfParam & ",setdar=16/9"
+	if $bHWEnc = False Or ($iWidth <> 1920 And $iHeight <> 1080) then
+		$sVfParam = $sVfParam & StringFormat("scale=%s:%s,", $iWidth, $iHeight)
+	EndIf
+	if $iWidth/$iHeight < 16/9 OR $bHWEnc = True then
+		$sVfParam = $sVfParam & "setdar=16/9"
+	EndIf
+	if StringRight($sVfParam,1) = "," Then
+		$sVfParam = StringLeft($sVfParam,StringLen($sVfParam)-1)
 	EndIf
 	if GUICtrlRead($ComboVCodec) <> "copy" then
 		$sCommand = $sCommand & StringFormat("%s", $sVfParam)
 		$sCommand = $sCommand & " "
+		$sCommandBroadcastMPegTS = StringFormat("%s", $sVfParam)
 	EndIf
 
 	if _GUICtrlComboBox_GetCurSel($ComboVCodec) = 1 Then ;~ 	H.264 Cbr
 		$sCodec = StringLeft($sCodec, 4)
 	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 2 Then ;~ 	H.264 Vbr
 		$sCodec = StringLeft($sCodec, 4)
-	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 Then ;~ 	H.264 cbr Nvenc
+	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 Or _GUICtrlComboBox_GetCurSel($ComboVCodec) = 6 Then ;~ 	H.264/Hevc Nvenc
 		$sCodec = StringLeft($sCodec, 10)
-	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 4 Then ;~ 	H.264 qp Nvenc
+	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 4 then ;~ 	Mpeg2Video Cbr
 		$sCodec = StringLeft($sCodec, 10)
-	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 5 then ;~ 	Mpeg2Video Cbr
-		$sCodec = StringLeft($sCodec, 10)
-	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 6 then ;~ 	Mpeg2Video QScale
+	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 5 then ;~ 	Mpeg2Video QScale
 		$sCodec = StringLeft($sCodec, 10)
 	EndIf
 	$sCommand = $sCommand & StringFormat("-c:v %s", $sCodec)
 	$sCommand = $sCommand & " "
+	$sCommandBroadcastMPegTS = $sCommandBroadcastMPegTS & " " & StringFormat("-c:v %s", $sCodec)
 
 	if _GUICtrlComboBox_GetCurSel($ComboVCodec) = 1 Then ;~ 	H.264 Cbr
 		$sCommand = $sCommand & StringFormat("-b:v %sk", GUICtrlRead($InputVBitrate))
 		$sCommand = $sCommand & " "
+		$sCommandBroadcastMPegTS = $sCommandBroadcastMPegTS & " " & StringFormat("-b:v %sk", GUICtrlRead($InputVBitrate))
 	Elseif _GUICtrlComboBox_GetCurSel($ComboVCodec) = 2 Then ;~ 	H.264 Vbr
 		$sCommand = $sCommand & StringFormat("-crf %s", GUICtrlRead($InputVCrf))
 		$sCommand = $sCommand & " "
-	Elseif _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 Then ;~ 	H.264 Cbr Nvenc
+		$sCommandBroadcastMPegTS = $sCommandBroadcastMPegTS & " " & StringFormat("-crf %s", GUICtrlRead($InputVCrf))
+	Elseif _GUICtrlComboBox_GetCurSel($ComboVCodec) = 3 Or _GUICtrlComboBox_GetCurSel($ComboVCodec) = 6 Then ;~ 	H.264/Hevc Nvenc
 		$sCommand = $sCommand & StringFormat("-cbr true -b:v %sk", GUICtrlRead($InputVBitrate))
 		$sCommand = $sCommand & " "
+		$sCommandBroadcastMPegTS = $sCommandBroadcastMPegTS & " " & StringFormat("-cbr true -b:v %sk", GUICtrlRead($InputVBitrate))
 	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 4 then ;~ 	Mpeg2Video Cbr
 		$sCommand = $sCommand & StringFormat("-b:v %sk", GUICtrlRead($InputVBitrate))
 		$sCommand = $sCommand & " "
+		$sCommandBroadcastMPegTS = $sCommandBroadcastMPegTS & " " & StringFormat("-b:v %sk", GUICtrlRead($InputVBitrate))
 	ElseIf _GUICtrlComboBox_GetCurSel($ComboVCodec) = 5 then ;~ 	Mpeg2Video QScale
 		$sCommand = $sCommand & StringFormat("-qscale %s", GUICtrlRead($InputVQScale))
 		$sCommand = $sCommand & " "
+		$sCommandBroadcastMPegTS = $sCommandBroadcastMPegTS & " " & StringFormat("-qscale %s", GUICtrlRead($InputVQScale))
 	EndIf
 
 	; audio option
 	$sCommand = $sCommand & StringFormat("-c:a %s", GUICtrlRead($ComboACodec))
 	$sCommand = $sCommand & " "
+	$sCommandBroadcastMPegTS = $sCommandBroadcastMPegTS & " " & StringFormat("-c:a %s", GUICtrlRead($ComboACodec))
 
 	if _GUICtrlComboBox_GetCurSel($ComboACodec) > 0 Then ;~ 	not copy
 		$sCommand = $sCommand & StringFormat("-b:a %sk", GUICtrlRead($InputABitrate))
 		$sCommand = $sCommand & " "
+		$sCommandBroadcastMPegTS = $sCommandBroadcastMPegTS & " " & StringFormat("-b:a %sk", GUICtrlRead($InputABitrate))
 	EndIf
 
 	; preset
 	if GUICtrlRead($ComboPreset) <> "default" And GUICtrlRead($ComboVCodec) <> "copy" then
 		$sCommand = $sCommand & StringFormat("-preset %s", GUICtrlRead($ComboPreset))
 		$sCommand = $sCommand & " "
+		$sCommandBroadcastMPegTS = $sCommandBroadcastMPegTS & " " & StringFormat("-preset %s", GUICtrlRead($ComboPreset))
 	EndIf
 
 	; destination
 	$sCommand = $sCommand & StringFormat("%s", $sFileNameFFMpegDest)
 
-	; ustream
-	if $bEncodeToUStreamMode = True then
-		$sCommand = StringFormat("-re -y -loglevel quiet -i %s", $sFileNameFFMpegRaw)
-		$sCommand = $sCommand & " "
-
-		$sVfParam = "-vf "
-		if GUICtrlRead($CheckboxDeint) = $GUI_CHECKED Then
-			$sVfParam = $sVfParam & "yadif,"
-		EndIf
-		$sVfParam = $sVfParam & StringFormat("scale=%s", "1280:720")
-		$sCommand = $sCommand & " "
-
-		$sCommand = $sCommand & StringFormat("-c:v %s", "h264")
-		$sCommand = $sCommand & " "
-
-		$sCommand = $sCommand & StringFormat("-b:v %sk", GUICtrlRead($InputVBitrate))
-		$sCommand = $sCommand & " "
-
-		$sCommand = $sCommand & StringFormat("-c:a %s", "aac")
-		$sCommand = $sCommand & " "
-
-		$sCommand = $sCommand & StringFormat("-b:a %sk", GUICtrlRead($InputABitrate))
-		$sCommand = $sCommand & " "
-
-		$sCommand = $sCommand & "-g 50 -profile:v main -f flv"
-		$sCommand = $sCommand & " "
-
-		$sInputUStreamUrl=GUICtrlRead($InputUStreamUrl)
-		$sInputUStreamChannelKey=GUICtrlRead($InputUStreamChannelKey)
-
-		$sUStream = StringFormat("%s/%s", $sInputUStreamUrl, $sInputUStreamChannelKey)
-
-		$sCommand = $sCommand & StringFormat("%s", $sUStream)
-
+	; broadcast
+	if GUICtrlRead($CheckboxOnlyBroadcastMpegTS) = $GUI_CHECKED Then
+		$sCommand = $sCommandBroadcastMPegTS & " " & StringFormat("-g 50 -f mpegts %s", GUICtrlRead($InputBroadcastMpegTS))
+	EndIf
+	if GUICtrlRead($CheckboxBroadcastMPegTSRecord) = $GUI_CHECKED Then
+		$sCommand = $sCommand & " " & $sCommandBroadcastMPegTS & " " & StringFormat("-g 50 -f mpegts %s", GUICtrlRead($InputBroadcastMpegTS))
 	EndIf
 
 	GUICtrlSetData($InputMainProcess, $sCommand)
@@ -673,11 +675,8 @@ Func LoadConfiguration()
 	EndIf
 	GUICtrlSetData($InputDestinationFolder, $sInputDestinationFolder)
 
-	Local $sInputUStreamUrl = IniRead($Config, "General", "UStreamUrl","")
-	GUICtrlSetData($InputUStreamUrl, $sInputUStreamUrl)
-
-	Local $sInputUStreamChannelKey = IniRead($Config, "General", "UStreamChannelKey","")
-	GUICtrlSetData($InputUStreamChannelKey, $sInputUStreamChannelKey)
+	Local $sInputBroadcastMpegTS = IniRead($Config, "General", "BroadcastMpegTS","")
+	GUICtrlSetData($InputBroadcastMpegTS, $sInputBroadcastMpegTS)
 
 	;~ 	Encoding video
 	Local $sComboContainer = IniRead($Config, "Encoding", "Container","")
@@ -736,6 +735,20 @@ Func LoadConfiguration()
 		GUICtrlSetState($CheckboxDeint2x, $GUI_UNCHECKED)
 	EndIf
 
+	Local $sCheckboxOnlyBroadcastMpegTS = IniRead($Config, "Encoding", "OnlyBroadcastMpegTS", false)
+	if $sCheckboxOnlyBroadcastMpegTS = "true" Then
+		GUICtrlSetState($CheckboxOnlyBroadcastMpegTS, $GUI_CHECKED)
+	Else
+		GUICtrlSetState($CheckboxOnlyBroadcastMpegTS, $GUI_UNCHECKED)
+	EndIf
+
+	Local $sCheckboxBroadcastMPegTSRecord = IniRead($Config, "Encoding", "BroadcastMpegTSRecord", false)
+	if $sCheckboxBroadcastMPegTSRecord = "true" Then
+		GUICtrlSetState($CheckboxBroadcastMPegTSRecord, $GUI_CHECKED)
+	Else
+		GUICtrlSetState($CheckboxBroadcastMPegTSRecord, $GUI_UNCHECKED)
+	EndIf
+
 	;~ 	Encoding audio
 	Local $sComboACodec = IniRead($Config, "Encoding", "ACodec","")
 	if $sComboACodec = "" Then
@@ -748,15 +761,6 @@ Func LoadConfiguration()
 		$sInputABitrate = "192"
 	EndIf
 	GUICtrlSetData($InputABitrate, $sInputABitrate)
-
-	;~ 	Ustream
-	Local $sCheckboxUStream = IniRead($Config, "Encoding", "UStream", false)
-	if $sCheckboxUStream = "true" Then
-		GUICtrlSetState($CheckboxUStream, $GUI_CHECKED)
-	Else
-		GUICtrlSetState($CheckboxUStream, $GUI_UNCHECKED)
-	EndIf
-
 
 	HandleControls();
 
@@ -777,11 +781,8 @@ Func SaveConfiguration()
 	Local $sInputDestinationFolder = GUICtrlRead($InputDestinationFolder)
 	IniWrite($Config, "General", "DestinationFolder", $sInputDestinationFolder)
 
-	Local $sInputUStreamUrl = GUICtrlRead($InputUStreamUrl)
-	IniWrite($Config, "General", "UStreamUrl", $sInputUStreamUrl)
-
-	Local $sUStreamChannelKey = GUICtrlRead($InputUStreamChannelKey)
-	IniWrite($Config, "General", "UStreamChannelKey", $sUStreamChannelKey)
+	Local $sInputBroadcastMpegTS = GUICtrlRead($InputBroadcastMpegTS)
+	IniWrite($Config, "General", "BroadcastMpegTS", $sInputBroadcastMpegTS)
 
 	;~ 	Encoding video
 	Local $sComboContainer = GUICtrlRead($ComboContainer)
@@ -805,11 +806,17 @@ Func SaveConfiguration()
 	Local $sInputVQScale = GUICtrlRead($InputVQScale)
 	IniWrite($Config, "Encoding", "VQScale", $sInputVQScale)
 
-		Local $sCheckboxDeint = GUICtrlRead($CheckboxDeint) = $GUI_CHECKED
+	Local $sCheckboxDeint = GUICtrlRead($CheckboxDeint) = $GUI_CHECKED
 	IniWrite($Config, "Encoding", "Deint", $sCheckboxDeint)
 
 	Local $sCheckboxDeint2x = GUICtrlRead($CheckboxDeint2x) = $GUI_CHECKED
 	IniWrite($Config, "Encoding", "Deint2x", $sCheckboxDeint2x)
+
+	Local $sCheckboxOnlyBroadcastMpegTS = GUICtrlRead($CheckboxOnlyBroadcastMpegTS) = $GUI_CHECKED
+	IniWrite($Config, "Encoding", "OnlyBroadcastMpegTS", $sCheckboxOnlyBroadcastMpegTS)
+
+	Local $sCheckboxBroadcastMPegTSRecord = GUICtrlRead($CheckboxBroadcastMPegTSRecord) = $GUI_CHECKED
+	IniWrite($Config, "Encoding", "BroadcastMPegTSRecord", $sCheckboxBroadcastMPegTSRecord)
 
 	;~ 	Encoding audio
 	Local $sComboACodec = GUICtrlRead($ComboACodec)
@@ -817,10 +824,6 @@ Func SaveConfiguration()
 
 	Local $sInputABitrate = GUICtrlRead($InputABitrate)
 	IniWrite($Config, "Encoding", "ABitrate", $sInputABitrate)
-
-	;~ 	Ustream
-	Local $sCheckboxUStream = GUICtrlRead($CheckboxUStream) = $GUI_CHECKED
-	IniWrite($Config, "Encoding", "UStream", $sCheckboxUStream)
 
 EndFunc
 
